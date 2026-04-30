@@ -1,0 +1,12 @@
+{
+  "name": "pregnant-food-guide",
+  "version": "1.0.0",
+  "description": "孕妇饮食查询应用",
+  "scripts": {
+    "dev": "npx serve . -l 3000",
+    "start": "npx serve ."
+  },
+  "keywords": ["pregnant", "food", "guide"],
+  "author": "",
+  "license": "MIT"
+}

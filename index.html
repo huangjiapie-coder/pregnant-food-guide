@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>孕妇饮食查询</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            padding-bottom: 80px;
+            background: linear-gradient(135deg, #f5f0e8 0%, #e8e0d5 50%, #f0ebe3 100%);
+            min-height: 100vh;
+        }
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .glass-dark {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(139, 128, 116, 0.15);
+        }
+        .glass-header {
+            background: linear-gradient(135deg, rgba(167, 156, 143, 0.85) 0%, rgba(145, 135, 123, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .glass-modal {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+        }
+        .modal-overlay {
+            background: rgba(100, 90, 80, 0.3);
+            backdrop-filter: blur(8px);
+        }
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .tag-recommend { background: linear-gradient(135deg, #94b394, #7a9e7a); }
+        .tag-caution { background: linear-gradient(135deg, #d4b896, #c4a87e); }
+        .tag-avoid { background: linear-gradient(135deg, #c9a0a0, #b89090); }
+        .btn-recommend { background: rgba(148, 179, 148, 0.3); color: #5a7a5a; }
+        .btn-caution { background: rgba(212, 184, 150, 0.3); color: #8a7050; }
+        .btn-avoid { background: rgba(201, 160, 160, 0.3); color: #8a5a5a; }
+        .section-title { color: #7a7268; }
+        .text-muted { color: #9a9288; }
+        .text-primary { color: #6a6258; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部标题 -->
+    <div class="glass-header text-white px-4 py-5 sticky top-0 z-40">
+        <h1 class="text-xl font-bold text-center">🤰 孕妇饮食查询</h1>
+        <p class="text-center text-white/80 text-sm mt-1">买菜做饭好帮手</p>
+    </div>
+
+    <!-- 搜索框 -->
+    <div class="px-4 -mt-3 relative z-50">
+        <div class="glass rounded-2xl p-2">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-muted ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" id="searchInput" placeholder="输入食材名称，如：菠菜,鸡蛋,牛肉"
+                    class="flex-1 px-3 py-3 outline-none text-primary bg-transparent"
+                    autocomplete="off">
+                <button id="clearSearch" class="hidden p-2 text-muted hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分类标签 -->
+    <div class="px-4 mt-4">
+        <div class="flex gap-2 overflow-x-auto pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
+            <button class="category-btn active flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all glass text-primary" data-category="all">
+                全部
+            </button>
+            <button class="category-btn flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all btn-recommend" data-category="recommend">
+                ✅ 推荐
+            </button>
+            <button class="category-btn flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all btn-caution" data-category="caution">
+                ⚠️ 慎吃
+            </button>
+            <button class="category-btn flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all btn-avoid" data-category="avoid">
+                ❌ 禁吃
+            </button>
+        </div>
+    </div>
+
+    <!-- 今日菜谱推荐 -->
+    <div class="px-4 mt-4">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="font-bold section-title">🍽️ 今日菜谱推荐</h2>
+            <button onclick="refreshRecipes()" class="section-title text-sm font-medium flex items-center gap-1 opacity-80">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                换一批
+            </button>
+        </div>
+        <div id="recipeList" class="grid grid-cols-2 gap-3">
+            <!-- 动态生成菜谱卡片 -->
+        </div>
+    </div>
+
+    <!-- 首页内容 -->
+    <div id="homeContent">
+        <!-- 统计信息 -->
+        <div class="px-4 mt-5">
+            <p id="resultCount" class="text-sm text-muted">共收录 <span class="font-bold text-primary">0</span> 种食材</p>
+        </div>
+
+        <!-- 食材列表 -->
+        <div id="foodList" class="px-4 mt-3 space-y-3">
+            <!-- 动态生成 -->
+        </div>
+    </div>
+
+    <!-- 分类内容 -->
+    <div id="categoryContent" class="hidden">
+        <!-- 分类统计 -->
+        <div class="px-4 mt-4 mb-2">
+            <p class="text-sm text-muted">按食材类别查看</p>
+        </div>
+        <!-- 分类列表 -->
+        <div id="categoryList" class="px-4 space-y-4">
+            <!-- 动态生成 -->
+        </div>
+    </div>
+
+    <!-- 空状态 -->
+    <div id="emptyState" class="hidden text-center py-16">
+        <div class="text-6xl mb-4">🔍</div>
+        <p class="text-muted">没有找到相关食材</p>
+        <p class="text-muted text-sm mt-1 mb-4">去小红书查看真实用户分享</p>
+        <button onclick="searchXiaohongshu()" class="px-6 py-2 glass text-primary rounded-full text-sm font-medium active:scale-95 transition-transform">
+            🔴 去小红书查
+        </button>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div id="detailModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" onclick="closeDetail()"></div>
+        <div class="absolute bottom-0 left-0 right-0 glass-modal rounded-t-3xl slide-up max-h-[85vh] overflow-y-auto">
+            <div class="sticky top-0 glass-dark z-10">
+                <div class="flex justify-center pt-3 pb-2">
+                    <div class="w-12 h-1.5 bg-gray-300/50 rounded-full"></div>
+                </div>
+                <div class="flex justify-between items-center px-4 pb-3">
+                    <h2 id="detailTitle" class="text-xl font-bold text-primary"></h2>
+                    <button onclick="closeDetail()" class="p-2 text-muted hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="px-4 pb-8 safe-area-bottom">
+                <div id="detailTag" class="inline-block px-4 py-1.5 rounded-full text-white text-sm font-medium mb-4"></div>
+                <div class="glass rounded-2xl p-4 mb-4">
+                    <h3 class="font-medium text-primary mb-2">📝 简介</h3>
+                    <p id="detailDesc" class="text-primary/80 text-sm leading-relaxed"></p>
+                </div>
+                <div class="glass rounded-2xl p-4 mb-4">
+                    <h3 class="font-medium text-primary mb-2">💡 营养价值</h3>
+                    <p id="detailNutrition" class="text-primary/80 text-sm leading-relaxed"></p>
+                </div>
+                <div class="glass rounded-2xl p-4 mb-4">
+                    <h3 class="font-medium text-primary mb-2">⚠️ 注意事项</h3>
+                    <p id="detailNotice" class="text-primary/80 text-sm leading-relaxed"></p>
+                </div>
+                <div class="glass rounded-2xl p-4">
+                    <h3 class="font-medium text-primary mb-2">🍳 推荐做法</h3>
+                    <p id="detailRecipe" class="text-primary/80 text-sm leading-relaxed"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="fixed bottom-0 left-0 right-0 glass-nav safe-area-bottom z-40">
+        <div class="flex justify-around py-2">
+            <button class="nav-btn active flex flex-col items-center py-2 px-6 text-primary" data-tab="home">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+                <span class="text-xs mt-1">首页</span>
+            </button>
+            <button class="nav-btn flex flex-col items-center py-2 px-6 text-muted" data-tab="category">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+                <span class="text-xs mt-1">分类</span>
+            </button>
+            <button class="nav-btn flex flex-col items-center py-2 px-6 text-muted" data-tab="favorite">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+                <span class="text-xs mt-1">收藏</span>
+            </button>
+        </div>
+    </div>
+
+  <script src="food-data.js"></script>
+  <script src="recipe-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
